@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+out/
+target/
+
+# Test and cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+test-results/
+playwright-report/
+
+# Runtime data
+logs/
+tmp/
+temp/
+*.log
+*.sqlite
+*.db
+
+# Local secrets
+.env
+.env.*
+*.key
+*.pem
