@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>开发前用的 Skill</title>
+    <title>skill.md</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -21,7 +21,6 @@
         --line: #e5e7eb;
         --paper: #ffffff;
         --soft: #f8fafc;
-        --brand: #2563eb;
         --brand-dark: #1d4ed8;
       }
 
@@ -29,35 +28,78 @@
         min-height: 100vh;
         background: var(--soft);
         color: var(--ink);
-        display: flex;
-        flex-direction: column;
       }
 
       .site-shell {
         max-width: 1120px;
       }
 
-      .hero {
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.98)),
-          radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 32rem);
-        border-bottom: 1px solid var(--line);
-      }
-
-      .hero-title {
-        max-width: 820px;
-        letter-spacing: 0;
-      }
-
-      .hero-copy {
-        max-width: 760px;
-        color: var(--muted);
-        line-height: 1.8;
-      }
-
-      .template-section {
+      .prompt-section,
+      .skill-section {
         border: 1px solid var(--line);
         background: var(--paper);
+      }
+
+      .prompt-section {
+        overflow: hidden;
+      }
+
+      .download-option {
+        display: grid;
+        grid-template-columns: 2.5rem 5.5rem minmax(0, 1fr) 2.5rem;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        border-top: 1px solid var(--line);
+      }
+
+      .download-option:first-child {
+        border-top: 0;
+      }
+
+      .system-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: 0.5rem;
+        background: var(--soft);
+        color: var(--ink);
+        font-size: 1.25rem;
+      }
+
+      .system-name {
+        font-weight: 600;
+      }
+
+      .instruction-box {
+        min-width: 0;
+        padding: 0.6rem 0.75rem;
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 0.5rem;
+        background: var(--soft);
+        color: var(--ink);
+        font-size: 0.8125rem;
+        line-height: 1.55;
+        white-space: nowrap;
+      }
+
+      .instruction-command {
+        color: var(--ink);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.8125rem;
+      }
+
+      .icon-button {
+        width: 2.5rem;
+        height: 2.5rem;
+        flex: 0 0 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .accordion-button {
@@ -69,10 +111,8 @@
         color: var(--brand-dark);
       }
 
-      .template-path {
-        color: var(--muted);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 0.8125rem;
+      .source-wrap {
+        position: relative;
       }
 
       .source-box {
@@ -80,8 +120,8 @@
         min-height: 360px;
         border: 1px solid var(--line);
         border-radius: 0.75rem;
-        background: #ffffff;
-        color: #111827;
+        background: var(--paper);
+        color: var(--ink);
         padding: 1rem;
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 0.875rem;
@@ -89,24 +129,25 @@
         resize: vertical;
       }
 
-      .source-wrap {
-        position: relative;
-      }
-
       .source-copy {
         position: absolute;
         top: 0.75rem;
         right: 0.75rem;
-        background: rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.94);
       }
 
       @media (max-width: 575.98px) {
-        .hero .btn {
-          width: 100%;
+        .download-option {
+          grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
         }
 
-        .template-section .p-4 {
-          padding: 1rem !important;
+        .instruction-box {
+          grid-column: 1 / -1;
+          grid-row: 2;
+        }
+
+        .accordion-body {
+          padding: 1rem;
         }
 
         .source-box {
@@ -114,54 +155,81 @@
           font-size: 0.8125rem;
         }
       }
-
-      .footer-icon-button {
-        width: 4rem;
-        height: 3.5rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #111827;
-        border-radius: 0.5rem;
-        background: #ffffff;
-        color: #111827;
-        font-size: 1.45rem;
-        text-decoration: none;
-      }
-
-      .footer-icon-button:hover,
-      .footer-icon-button:focus {
-        border-color: #111827;
-        background: #f8fafc;
-        color: #111827;
-      }
     </style>
   </head>
   <body>
-    <main class="container site-shell py-4 py-md-5 flex-grow-1">
-      <section id="templates" class="template-section rounded-4 overflow-hidden">
-        <div class="accordion accordion-flush" id="templateAccordion"></div>
+    <main class="container site-shell py-4 py-md-5">
+      <section class="prompt-section rounded-3 mb-3" aria-label="skill.md 下载指令">
+        <div class="download-option">
+          <span class="system-icon" aria-hidden="true"><i class="bi bi-windows"></i></span>
+          <span class="system-name">Windows</span>
+          <div class="instruction-box">
+            在项目根目录执行 <code class="instruction-command">Invoke-WebRequest -Uri "https://luckymaomi.github.io/skill/skill.md" -OutFile "skill.md"</code>，然后阅读 skill.md，按步骤依次执行。
+          </div>
+          <button class="btn btn-light border icon-button copy-command" type="button" data-command="Invoke-WebRequest -Uri &quot;https://luckymaomi.github.io/skill/skill.md&quot; -OutFile &quot;skill.md&quot;" aria-label="复制 Windows 指令" title="复制">
+            <i class="bi bi-copy" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="download-option">
+          <span class="system-icon" aria-hidden="true"><i class="bi bi-apple"></i></span>
+          <span class="system-name">macOS</span>
+          <div class="instruction-box">
+            在项目根目录执行 <code class="instruction-command">curl -fsSL "https://luckymaomi.github.io/skill/skill.md" -o "skill.md"</code>，然后阅读 skill.md，按步骤依次执行。
+          </div>
+          <button class="btn btn-light border icon-button copy-command" type="button" data-command="curl -fsSL &quot;https://luckymaomi.github.io/skill/skill.md&quot; -o &quot;skill.md&quot;" aria-label="复制 macOS 指令" title="复制">
+            <i class="bi bi-copy" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="download-option">
+          <span class="system-icon" aria-hidden="true"><i class="bi bi-ubuntu"></i></span>
+          <span class="system-name">Linux</span>
+          <div class="instruction-box">
+            在项目根目录执行 <code class="instruction-command">curl -fsSL "https://luckymaomi.github.io/skill/skill.md" -o "skill.md"</code>，然后阅读 skill.md，按步骤依次执行。
+          </div>
+          <button class="btn btn-light border icon-button copy-command" type="button" data-command="curl -fsSL &quot;https://luckymaomi.github.io/skill/skill.md&quot; -o &quot;skill.md&quot;" aria-label="复制 Linux 指令" title="复制">
+            <i class="bi bi-copy" aria-hidden="true"></i>
+          </button>
+        </div>
+      </section>
+
+      <section class="skill-section rounded-4 overflow-hidden" aria-label="skill.md 源文件">
+        <div class="accordion accordion-flush">
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#skillSource"
+                aria-expanded="false"
+                aria-controls="skillSource"
+              >
+                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                <span class="fw-semibold">skill.md</span>
+              </button>
+            </div>
+            <div id="skillSource" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                <div class="source-wrap">
+                  <button class="btn btn-sm btn-light border source-copy" id="copySkill" type="button" aria-label="复制 skill.md" title="复制">
+                    <i class="bi bi-copy" aria-hidden="true"></i>
+                  </button>
+                  <textarea class="source-box" id="source" spellcheck="false" readonly aria-label="skill.md 内容">正在读取...</textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
-    <footer class="border-top bg-white">
-      <div class="container site-shell py-4">
-        <div class="d-flex justify-content-center align-items-center gap-2">
-          <a class="footer-icon-button" href="https://github.com/luckymaomi/skill" target="_blank" rel="noreferrer" aria-label="GitHub">
-            <i class="bi bi-github"></i>
-          </a>
-          <a class="footer-icon-button" href="downloads/skill.zip" aria-label="下载">
-            <i class="bi bi-download"></i>
-          </a>
-        </div>
-      </div>
-    </footer>
-
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div class="toast align-items-center text-bg-dark border-0" id="toast" role="status" aria-live="polite">
+      <div class="toast align-items-center text-bg-dark border-0" id="toast" role="status" aria-live="polite" aria-atomic="true">
         <div class="d-flex">
           <div class="toast-body" id="toastBody">已复制</div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="关闭"></button>
         </div>
       </div>
     </div>
@@ -172,109 +240,75 @@
       crossorigin="anonymous"
     ></script>
     <script>
-      const templates = [
-        ['Skill 使用入口', 'skill.md', '新项目开始前先读这个文件。'],
-        ['AGENTS.md', 'AGENTS.md', '项目最高工作规约模板。'],
-        ['spec.md', 'spec.md', '当前产品事实和边界模板。'],
-        ['plan.example.md', 'plan.example.md', '任务计划模板。'],
-        ['Project Development Skill', '.codex/skills/project-development/SKILL.md', '项目级开发 skill 模板。'],
-        ['Plan Skill', '.codex/skills/plan/SKILL.md', 'plan.md 写作和执行 skill 模板。'],
-        ['CONTRIBUTING.md', 'CONTRIBUTING.md', '英文贡献规范模板。'],
-        ['SECURITY.md', 'SECURITY.md', '英文安全说明模板。'],
-        ['LICENSE', 'LICENSE', 'MIT 协议模板。'],
-        ['.gitignore', '.gitignore', '通用忽略规则模板。'],
-      ];
-
-      const cache = new Map();
-      const accordion = document.getElementById('templateAccordion');
+      const source = document.getElementById('source');
+      const copySkill = document.getElementById('copySkill');
       const toast = new bootstrap.Toast(document.getElementById('toast'));
       const toastBody = document.getElementById('toastBody');
+      let skillText = '';
 
       function showToast(message) {
         toastBody.textContent = message;
         toast.show();
       }
 
-      function escapeHtml(value) {
-        return value
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;')
-          .replaceAll('"', '&quot;')
-          .replaceAll("'", '&#039;');
-      }
-
-      async function loadText(path) {
-        if (cache.has(path)) return cache.get(path);
-        const response = await fetch(path, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const text = await response.text();
-        cache.set(path, text);
-        return text;
-      }
-
-      async function copyTemplate(path) {
-        const text = await loadText(path);
-        await navigator.clipboard.writeText(text);
-        showToast('已复制模板原文');
-      }
-
-      async function fillSource(path, targetId) {
-        const target = document.getElementById(targetId);
-        if (!target || target.dataset.loaded === 'true') return;
-
-        target.value = '正在读取...';
+      async function copyText(text, fallbackTarget) {
         try {
-          target.value = await loadText(path);
+          await navigator.clipboard.writeText(text);
+          return true;
         } catch (error) {
-          target.value = [
-            '无法读取模板文件。',
+          if (fallbackTarget) {
+            fallbackTarget.focus();
+            fallbackTarget.select();
+            return false;
+          }
+
+          const helper = document.createElement('textarea');
+          helper.value = text;
+          helper.setAttribute('readonly', '');
+          helper.style.position = 'fixed';
+          helper.style.opacity = '0';
+          document.body.appendChild(helper);
+          helper.select();
+          const copied = document.execCommand('copy');
+          helper.remove();
+          return copied;
+        }
+      }
+
+      async function loadSkill() {
+        try {
+          const response = await fetch('skill.md', { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          skillText = await response.text();
+          source.value = skillText;
+        } catch (error) {
+          source.value = [
+            '无法读取 skill.md。',
             '',
-            '如果你是直接双击打开 index.html，浏览器可能会限制本地文件读取。',
-            '可以在本目录运行：python -m http.server 8000',
-            '然后访问：http://127.0.0.1:8000',
+            '如果你直接双击打开 index.html，浏览器可能会限制本地文件读取。',
+            '请通过静态文件服务访问本页面。',
             '',
             `错误：${error.message}`,
           ].join('\n');
+          copySkill.disabled = true;
         }
-        target.dataset.loaded = 'true';
       }
 
-      templates.forEach(([title, path, description], index) => {
-        const itemId = `template-${index}`;
-        const sourceId = `source-${index}`;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'accordion-item';
-        wrapper.innerHTML = `
-          <h3 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${itemId}">
-              <i class="bi bi-file-earmark-text"></i>
-              <span>
-                <span class="d-block fw-semibold">${escapeHtml(title)}</span>
-                <span class="template-path">${escapeHtml(path)}</span>
-              </span>
-            </button>
-          </h3>
-          <div id="${itemId}" class="accordion-collapse collapse" data-bs-parent="#templateAccordion">
-            <div class="accordion-body">
-              <p class="text-secondary">${escapeHtml(description)}</p>
-              <div class="source-wrap">
-                <button class="btn btn-sm btn-light border source-copy" type="button" data-copy="${escapeHtml(path)}" aria-label="复制">
-                  <i class="bi bi-copy"></i>
-                </button>
-                <textarea class="source-box" id="${sourceId}" spellcheck="false"></textarea>
-              </div>
-            </div>
-          </div>
-        `;
-        accordion.appendChild(wrapper);
-        document.getElementById(itemId).addEventListener('shown.bs.collapse', () => fillSource(path, sourceId));
+      document.querySelectorAll('.copy-command').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const instruction = `在项目根目录执行 ${button.dataset.command}，然后阅读 skill.md，按步骤依次执行。`;
+          const copied = await copyText(instruction);
+          showToast(copied ? '已复制指令' : '复制失败，请手动复制命令');
+        });
       });
 
-      accordion.addEventListener('click', (event) => {
-        const copyPath = event.target.closest('[data-copy]')?.dataset.copy;
-        if (copyPath) copyTemplate(copyPath);
+      copySkill.addEventListener('click', async () => {
+        if (!skillText) return;
+        const copied = await copyText(skillText, source);
+        showToast(copied ? '已复制 skill.md' : '已选中全文，请手动复制');
       });
+
+      loadSkill();
     </script>
   </body>
 </html>
