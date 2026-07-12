@@ -195,7 +195,17 @@ python -c "import pathlib,re; p=pathlib.Path('skill.md'); s=p.read_text(encoding
 
 只记录长期工作规则与协作纪律。产品能力变化不应直接导致它变化。
 
-应包含：交流语言、事实纪律、工作区保护、计划规则、工程纪律、验证命令、安全边界和交付标准。
+应包含：交流语言、事实纪律、工作区保护、项目级 skill 入口、计划规则、工程纪律、验证命令、安全边界和交付标准。
+
+### `.agents/skills/plan/SKILL.md`
+
+所有项目默认生成。它负责中大型任务的 `plan.md` 写作、执行、进度更新和收口，要求 Agent 在大改前先读 `AGENTS.md` 和项目开发 skill，再维护唯一的根计划。
+
+### `.agents/skills/<项目名>-dev/SKILL.md`
+
+所有项目默认生成。它负责当前项目的一般开发流程，把事实调查、计划、职责边界、测试、文档同步、完整验证和交付规则放在一个可触发入口中。初始化器会把目录名规范成小写连字符名称；无法得到有效英文名称时使用 `project-dev`。
+
+业务、数据格式、外部系统或特定工作流需要独立方法时，可以在后续任务中新增对应 skill。初始化阶段不猜测这些业务 skill，也不自动创建只用于客户端展示的 `agents/openai.yaml`。
 
 ### `spec.md`
 
@@ -404,6 +414,11 @@ def read_text(path: Path) -> str:
         return ""
 
 
+def skill_slug(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    return slug or "project"
+
+
 def detect_validation(root: Path) -> list[str]:
     commands: list[str] = []
     package_json = root / "package.json"
@@ -453,13 +468,28 @@ def inspect_project(root: Path) -> dict:
     unchecked = len(re.findall(r"^- \[ \]", plan, flags=re.MULTILINE))
     checked = len(re.findall(r"^- \[[xX]\]", plan, flags=re.MULTILINE))
     validation = detect_validation(root)
+    project_slug = skill_slug(root.name)
+    expected_skills = [
+        ".agents/skills/plan/SKILL.md",
+        f".agents/skills/{project_slug}-dev/SKILL.md",
+    ]
+    project_skills = [
+        path.as_posix() for path in files
+        if len(path.parts) >= 4
+        and path.parts[0] == ".agents"
+        and path.parts[1] == "skills"
+        and path.name == "SKILL.md"
+    ]
 
     if "spec.md" not in names and not code_files and not manifests:
         suggested = "requirements"
         reason = "尚未发现已确认需求文档、代码或技术栈入口。"
-    elif any(name not in names for name in ("AGENTS.md", "spec.md", "README.md")):
+    elif (
+        any(name not in names for name in ("AGENTS.md", "spec.md", "README.md"))
+        or any(path not in names for path in expected_skills)
+    ):
         suggested = "foundation"
-        reason = "项目已有内容，但长期规则、当前事实或使用入口尚未完整建立。"
+        reason = "项目已有内容，但长期规则、项目级 skill、当前事实或使用入口尚未完整建立。"
     elif unchecked > 0:
         suggested = "implementation"
         reason = "当前计划仍有未完成任务。"
@@ -482,6 +512,8 @@ def inspect_project(root: Path) -> dict:
         "git_repository": (root / ".git").exists(),
         "file_count": len(files),
         "documents": docs,
+        "project_skills": project_skills,
+        "expected_project_skills": expected_skills,
         "manifests": manifests,
         "code_file_count": len(code_files),
         "test_file_count": len(tests),
@@ -500,7 +532,7 @@ def validation_block(commands: list[str]) -> str:
     return "\n".join(f"- `{command}`" for command in commands)
 
 
-def agents_template(project: str, commands: list[str]) -> str:
+def agents_template(project: str, project_slug: str, commands: list[str]) -> str:
     return f"""# {project} Agent 工作规约
 
 本文件是本仓库的最高工作约束。产品事实看 `spec.md`，当前任务状态看 `plan.md`。
@@ -528,6 +560,14 @@ def agents_template(project: str, commands: list[str]) -> str:
 - `spec.md`：当前产品事实、边界和验收标准。
 - `plan.md`：当前中大型任务的单文件执行合同。
 - `README.md`：面向用户和新读者的使用入口。
+
+## Skills
+
+- 项目级 skill 放在 `.agents/skills/`。
+- 任务命中 skill 的 `description` 时，必须先读取对应 `SKILL.md` 再行动。
+- 中大型开发、跨模块修改、边界调整或生产级验收使用 `.agents/skills/plan/SKILL.md`，并维护根目录 `plan.md`。
+- 修改实现、测试、事实文档或运行配置时使用 `.agents/skills/{project_slug}-dev/SKILL.md`。
+- 业务专属 skill 只在真实业务需要时新增，不把临时任务或产品事实硬编码进通用 skill。
 
 ## 计划规则
 
@@ -698,6 +738,113 @@ def plan_example_template() -> str:
 """
 
 
+def plan_skill_template(project: str, project_slug: str) -> str:
+    return f"""---
+name: plan
+description: 在 {project} 项目内编写和执行单文件 plan.md。适用于中大型开发、跨模块修改、产品边界调整、架构硬化、生产级验收和任何不能靠一次小补丁完成的任务。
+---
+
+# Plan
+
+`plan.md` 是当前中大型任务的单文件执行合同，同时承担需求、事实、失败测试、目标、设计、任务、验证和收口记录。
+
+## 触发后先做
+
+1. 读取根目录 `AGENTS.md`。
+2. 读取 `.agents/skills/{project_slug}-dev/SKILL.md`。
+3. 调查当前仓库、工作区、实现、测试、文档和运行事实。
+4. 已有 `plan.md` 属于当前任务时更新；不属于时先向 owner 确认是否替换。
+5. 没有当前计划时，以 `plan.example.md` 为结构参考创建根目录 `plan.md`。
+6. 写完计划再做大改；新事实推翻计划时，先更新计划再继续。
+
+## 事实边界
+
+- 用户输入是需求来源，不自动等于已经实现的事实。
+- 只把仓库、命令、运行结果和 owner 明确确认的内容写成事实。
+- 区分已确认事实、owner 提供但未验证的事实、推测、计划事项和已完成并验证事项。
+- 一个任务只维护一个根目录 `plan.md`。
+- checklist 随进度即时更新，不能在最后一次性全部勾选。
+- 不把历史过程、废弃语义或兼容方案写入当前产品主干。
+
+## 标准结构
+
+`plan.md` 必须按以下顺序组织：
+
+1. 需求文档：用户、问题、范围和可验收完成标准。
+2. 当前事实：已经核实的实现、测试、文档、配置、能力、缺口和未知项。
+3. 失败测试：问题仍存在时可观察或可自动验证的结果。
+4. 目标：完成后可以明确判断成功或失败的终局。
+5. 不做范围：本次明确排除的内容。
+6. 设计：职责、状态、数据流、接口、错误、恢复、安全和关键取舍。
+7. 实施任务：覆盖调查、实现、测试、文档、验证和交付的 checklist。
+8. 验证计划：局部检查、完整验证、核心路径、目标环境和预期结果。
+9. 收口：完成事实、实际命令、通过项、未验证项、剩余风险和外部操作状态。
+
+## 完成标准
+
+- owner 能从计划中判断需求、边界和完成状态。
+- 开发者能按设计和任务继续执行。
+- 验证者能按真实命令和场景复现结果。
+- `plan.example.md` 只作为结构模板，不替代当前任务计划。
+"""
+
+
+def project_dev_skill_template(project: str, project_slug: str, commands: list[str]) -> str:
+    return f"""---
+name: {project_slug}-dev
+description: 维护 {project} 项目时使用。适用于修改实现、接口、数据、测试、事实文档、依赖、构建和运行配置，要求先确认事实，再完成实现、验证、文档同步与交付闭环。
+---
+
+# {project} Development
+
+在本项目发生开发性修改时使用本 skill。
+
+## 开始前
+
+1. 读取根目录 `AGENTS.md`、`spec.md`、`README.md` 和当前 `plan.md`。
+2. 检查 Git 状态、分支、未提交改动、目录结构、运行入口和验证入口。
+3. 从当前任务涉及的入口追踪真实规则、状态、数据、错误和外部边界。
+4. 区分已确认事实、owner 提供但未验证的事实、推测、计划事项和已完成并验证事项。
+5. 任务需要计划时，先读取 `.agents/skills/plan/SKILL.md` 并维护根目录 `plan.md`。
+
+## 实现规则
+
+- 优先沿用仓库已经成立的技术栈、命名、模块边界和本地辅助能力。
+- 单一职责按变化原因判断；文件超过 300 行时审查职责，但不按行数机械拆分。
+- 状态、规则、数据读写、展示、外部接线和错误处理变化原因不同时，拆清边界。
+- 结构化数据使用结构化工具处理，错误在拥有处理能力的边界解决。
+- 不覆盖或回滚 owner 的无关改动，不建立旧别名、兼容转发、历史包装或过渡文件。
+- 任何未实现或未验证内容，在任何载体中都不能写成已经实现或已经通过。
+
+## 测试规则
+
+- 测试保护真实规则、边界、协作合同和核心路径，不保护废弃行为或内部实现形状。
+- 修复回归时先建立可复现的失败测试或等价证据，再修改实现。
+- 覆盖成功、空状态、错误、权限、极值和恢复路径。
+- 共享行为、跨边界合同、持久数据、安全规则和核心路径需要扩大验证范围。
+
+## 文档同步
+
+- 产品当前事实变化时同步 `spec.md`。
+- 用户使用、安装、运行或验证方式变化时同步 `README.md`。
+- 长期协作规则或验证入口变化时同步 `AGENTS.md` 和本 skill。
+- 当前任务范围、设计、状态或验证变化时同步 `plan.md`。
+- 删除的能力不得继续出现在实现、测试、文档或配置中。
+
+## 完整验证
+
+{validation_block(commands)}
+
+先运行与改动最接近的检查，再运行项目完整验证和核心路径。无法运行时写明具体命令、阻塞原因和剩余风险，不能写成已通过。
+
+## 交付
+
+- 检查最终差异、文件清单和工作区状态，只交付当前任务相关内容。
+- commit、push、部署和发布只在 owner 明确授权时执行。
+- 收口说明完成事实、实际验证、未验证项和剩余风险，不以“后续优化”代替当期完成。
+"""
+
+
 def readme_template(project: str, commands: list[str]) -> str:
     command_text = "\n".join(f"{index}. `{command}`" for index, command in enumerate(commands, 1))
     if not command_text:
@@ -821,16 +968,21 @@ def write_new(path: Path, content: str, results: dict[str, list[str]]) -> None:
 
 def initialize(root: Path, report: dict, args: argparse.Namespace) -> dict:
     project = args.project_name or report["project_name"]
+    project_slug = skill_slug(report["project_name"])
     commands = report["detected_validation_commands"]
     results: dict[str, list[str]] = {"created": [], "skipped": []}
 
     files = {
-        root / "AGENTS.md": agents_template(project, commands),
+        root / "AGENTS.md": agents_template(project, project_slug, commands),
         root / "spec.md": spec_template(project),
         root / "plan.md": plan_template(project, args.stage, commands),
         root / "plan.example.md": plan_example_template(),
         root / "README.md": readme_template(project, commands),
         root / ".gitignore": gitignore_template(root),
+        root / ".agents" / "skills" / "plan" / "SKILL.md": plan_skill_template(project, project_slug),
+        root / ".agents" / "skills" / f"{project_slug}-dev" / "SKILL.md": project_dev_skill_template(
+            project, project_slug, commands
+        ),
     }
     if args.visibility == "public":
         files[root / "CONTRIBUTING.md"] = contributing_template(commands)
